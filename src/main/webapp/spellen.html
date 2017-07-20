@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>GameRevs</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"></script>
+        <link rel="stylesheet" type="text/css" href="style2.css">
+    </head>
+    <body>
+        <div id="throbber" style="display:none; min-height:120px;"></div>
+        <div id="noty-holder"></div>
+        <div id="wrapper">
+            <!-- Navigation -->
+            <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <!-- Top Menu Items -->
+                <ul class="nav navbar-right top-nav">
+                    <li><a href="#" data-placement="bottom" data-toggle="tooltip" href="#" data-original-title="Stats"><i class="fa fa-bar-chart-o"></i>
+                        </a>
+                    </li>  
+                </ul>
+
+                            <!-- Sidebar Menu Items - These collapse to the responsive navigation menu on small screens -->
+                            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                                <ul class="nav navbar-nav side-nav">
+                                    <li><a href="spellen.html"><span class= "glyphicon glyphicon-list"></span> Reviews</a></li>
+                                    <li><a href="myreviews.html"><span class= "glyphicon glyphicon-inbox"></span> My Reviews</a></li>
+                                    <li><a href="account.html"><span class= "glyphicon glyphicon-user"></span> My Account</a></li>  
+                                    <li><a href="creategame.html"><span class= "glyphicon glyphicon-pencil"></span> Create Game Page</a></li>	
+                                    <li><a href="#"><span id = "signout" class="glyphicon glyphicon-log-out"></span> Sign out</a></li>
+                                </ul>
+                            </div>
+                            <!-- /.navbar-collapse -->
+                </nav>
+
+                        <div id="page-wrapper">
+                            <div class="container-fluid" id="container">
+                                <!-- Page Heading -->
+                                <div class="row" id="main" >
+                                    <div class="col-sm-12 col-md-12 well" id="content">
+                                        <h1> GameRevs!</h1>
+                                        <input type="text" id="spelInput" onkeyup="filterFunction()" class="form-control" placeholder="Find games...">y
+                                        <div class="table-responsive">		  
+
+                                            <table class="table table-striped" id="spellen">
+                                                <thead>
+                                                    <tr>   
+                                                        <th class="col-xs-1">Naam</th>
+                                                        <th class="col-xs-1">Genre</th>
+                                                        <th class="col-xs-1">publisher etc</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+        </div>
+                        <script>
+                            $.ajax({
+                                url: "http://localhost:4711/firstapp/restservices/spellen",
+                                method: "GET",
+                                beforeSend: function (xhr) {
+                                    var token = window.sessionStorage.getItem("sessionToken");
+                                    xhr.setRequestHeader( 'Authorization', 'Bearer ' + token);
+                                },
+                                success: function (spellen) {
+
+                                    $.each(spellen, function(i, spel){ 
+                                        $("#spellen").append("<tr><td>" + spel.naam +  "</td><td>"+spel.spelGenre+"</td><td>"+spel.publisher+"</td>"
+                                                             + "<td><button type='button' class='btn btn-warning' value='Input' id='review" + spel.nummer
+                                                             + "'>Reviews bekijken</button></td><td></tr>");
+
+                                        $("#review"+spel.nummer+"").click(function(){
+                                            $("#main").remove();
+                                            $.ajax({
+                                                url:'http://localhost:4711/firstapp/restservices/recensies/spel/'+spel.nummer,
+                                                mehtod:'GET',
+                                                contentType:'application/json',
+                                                beforeSend: function (xhr) {
+                                                    var token = window.sessionStorage.getItem("sessionToken");
+                                                    xhr.setRequestHeader( 'Authorization', 'Bearer ' + token);
+                                                },
+                                                success: function (response) {
+                                                    window.console.log(response);
+                                                    var div = document.getElementById("container");
+                                                    var i;
+                                                    var row = document.createElement("DIV");
+                                                    row.className = "row";
+                                                    div.appendChild(row);
+                                                    
+                                                    var heading = document.createElement("H1");
+                                                    
+                                                    row.appendChild(heading);
+                                                    heading.appendChild(document.createTextNode(response[0]["spelNaam"]));
+                                                    var p = document.createElement("P");
+                                                    row.appendChild(p);
+                                                    
+                                                    p.innerHTML = response[0]["spelBeschrijving"];
+                                                    
+                                                    for(i = 0; i < response.length; i++){
+                                                        var innerRow = document.createElement("DIV");   
+                                                        innerRow.className = "row";
+                                                        row.appendChild(innerRow);
+                                                        console.log(i);
+                                                        var col = document.createElement("DIV");
+                                                        innerRow.appendChild(col);
+                                                        col.className ="col-md-8 col-sm-8";
+                                                        
+                                                        var h4 = document.createElement("H4");
+                                                        
+                                                        col.appendChild(h4);
+                                                        h4.appendChild(document.createTextNode(response[i]["cijfer"]));
+                                                        
+                                                        var comment =  document.createElement("P");
+                                                        col.appendChild(comment);
+                                                        comment.innerHTML = response[i]["comment"];
+                                                        
+                                                    }
+                                                } 
+                                            });
+                                        })
+
+                                    });
+
+                                }
+                            });
+
+                            function filterFunction(){ 
+                                var input, filter, table, tr, td, i;
+                                input = document.getElementById("spelInput");
+                                filter = input.value.toUpperCase();
+                                table = document.getElementById("spellen");
+                                tr = table.getElementsByTagName("tr");
+
+
+                                for (i = 0; i < tr.length; i++){
+                                    naam = tr[i].getElementsByTagName("td")[0];
+                                    spelGenre = tr[i].getElementsByTagName("td")[1];
+                                    publisher  = tr[i].getElementsByTagName("td")[2];
+
+                                    if(naam || spelGenre || publisher){
+                                        if (naam.innerHTML.toUpperCase().indexOf(filter) > -1){
+                                            tr[i].style.display="";
+                                        }
+
+                                        else if (spelGenre.innerHTML.toUpperCase().indexOf(filter) > -1){
+                                            tr[i].style.display="";
+                                        }
+
+                                        else if (publisher.innerHTML.toUpperCase().indexOf(filter) > -1){
+                                            tr[i].style.display="";
+                                        }
+                                        else {
+                                            tr[i].style.display = "none";
+                                        } 
+                                    }
+                                }
+                            }
+
+                            $("#signout").click(function(event){
+                                window.sessionStorage.setItem("sessionToken", "guest");
+                                window.location.href="index.html";
+
+                            });
+
+                        </script>
+                        </body>
+                    </html>
